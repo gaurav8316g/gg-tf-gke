@@ -1,15 +1,32 @@
-# -------------------------------------------------------------
-# IMPORTANT: Set Your GCP Project Name
-# -------------------------------------------------------------
-# Before running 'terraform apply', update the project name in all configuration files:
-#   <GCP_PROJECTNAME>
-#
-# Example: environments/dev/terraform.tfvars
-#   gcp_project = "<GCP_PROJECTNAME>"
-# Replace <GCP_PROJECTNAME> with your actual GCP project ID everywhere it appears in the configs.
-# Initialize gcloud CLI
-./google-cloud-sdk/bin/gcloud init
 
+# Terraform GCP GKE Deployment Guide
+
+---
+
+## 1. Set Your GCP Project Name
+
+Before running `terraform apply`, update the project name in all configuration files:
+
+*Example:*
+```
+environments/dev/terraform.tfvars
+gcp_project = "<GCP_PROJECTNAME>"
+```
+Replace `<GCP_PROJECTNAME>` with your actual GCP project ID everywhere it appears in the configs.
+
+---
+
+## 2. Initialize gcloud CLI
+
+```sh
+./google-cloud-sdk/bin/gcloud init
+```
+
+---
+
+## 3. gcloud Useful Commands
+
+```sh
 # List accounts whose credentials are stored on the local system:
 gcloud auth list
 
@@ -27,65 +44,92 @@ gcloud config configurations create
 gcloud config configurations delete
 gcloud config configurations describe
 gcloud config configurations rename
+```
 
-# Configure GCP Credentials (ADC: Application Default Credentials)
-# IMPORTANT: MANDATORY FOR TERRAFORM COMMANDS TO WORK WITH GCP FROM OUR LOCAL TERMINAL
+---
+
+## 4. Configure GCP Credentials (ADC: Application Default Credentials)
+
+**MANDATORY FOR TERRAFORM COMMANDS TO WORK WITH GCP FROM LOCAL TERMINAL**
+
+```sh
 gcloud auth application-default login
+```
 
-# -------------------------------------------------------------
-# MANDATORY: Enable Required Google Cloud APIs before Terraform
-# -------------------------------------------------------------
-# -------------------------------------------------------------
-# MANDATORY: Enable Required Google Cloud APIs before Terraform
-# -------------------------------------------------------------
-# 1. Enable Compute Engine API:
-#    https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=<YOUR_PROJECT_ID>
-# 2. Enable Kubernetes Engine API:
-#    https://console.developers.google.com/apis/api/container.googleapis.com/overview?project=<YOUR_PROJECT_ID>
-# Replace <YOUR_PROJECT_ID> with your actual GCP project ID.
-# Both APIs must be enabled before running 'terraform apply'.
+---
 
-# -------------------------------------------------------------
-# MANDATORY: Create Cloud Storage Bucket for Terraform Backend
-# -------------------------------------------------------------
-# Before running any Terraform commands, create the required GCS bucket for remote state storage:
-#
-#   gsutil mb -p <YOUR_PROJECT_ID> -l <YOUR_REGION> gs://gg-terraform-2025
-#
-# Replace <YOUR_PROJECT_ID> and <YOUR_REGION> with your values.
-# The bucket name must match the value in your backend config (see environments/dev/c1-versions.tf):
-#   bucket = "gg-terraform-2025"
+## 5. Enable Required Google Cloud APIs (MANDATORY)
 
+Enable the following APIs before running `terraform apply`:
 
-## Important Note about gke-gcloud-auth-plugin: 
-1. Kubernetes clients require an authentication plugin, gke- gcloud-auth-plugin, which uses the Client-go Credential Plugins framework to provide authentication tokens to communicate with GKE clusters
+1. [Compute Engine API](https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=<YOUR_PROJECT_ID>)
+2. [Kubernetes Engine API](https://console.developers.google.com/apis/api/container.googleapis.com/overview?project=<YOUR_PROJECT_ID>)
 
-# Verify if gke-gcloud-auth-plugin installed
+Replace `<YOUR_PROJECT_ID>` with your actual GCP project ID.
+
+---
+
+## 6. Create Cloud Storage Bucket for Terraform Backend (MANDATORY)
+
+Before running any Terraform commands, create the required GCS bucket for remote state storage:
+
+```sh
+gsutil mb -p <YOUR_PROJECT_ID> -l <YOUR_REGION> gs://gg-terraform-2025
+```
+
+Replace `<YOUR_PROJECT_ID>` and `<YOUR_REGION>` with your values.
+The bucket name must match the value in your backend config (see `environments/dev/c1-versions.tf`):
+
+```hcl
+bucket = "gg-terraform-2025"
+```
+
+---
+
+## 7. gke-gcloud-auth-plugin (Kubernetes Authentication)
+
+Kubernetes clients require an authentication plugin, `gke-gcloud-auth-plugin`, which uses the Client-go Credential Plugins framework to provide authentication tokens to communicate with GKE clusters.
+
+### Verify if gke-gcloud-auth-plugin is installed
+```sh
 gke-gcloud-auth-plugin --version
+```
 
-# Install gke-gcloud-auth-plugin
+### Install gke-gcloud-auth-plugin
+```sh
 gcloud components install gke-gcloud-auth-plugin
+```
 
-# Verify if gke-gcloud-auth-plugin installed
-gke-gcloud-auth-plugin --version
-
-# List gcloud components
+### List gcloud components
+```sh
 gcloud components list
+```
 
-## SAMPLE OUTPUT
+---
+
+## 8. Install kubectl client (if needed)
+
+If `kubectl` is not installed, you may see output like:
+
+```
 Status: Not Installed
 Name: kubectl
 ID: kubectl
 Size: < 1 MiB
+```
 
-# Install kubectl client
+Install and verify:
+
+```sh
 gcloud components install kubectl
-
-# Verify kubectl version
 kubectl version --output=yaml
+```
 
+---
 
+## 9. Terraform Workflow
 
+```sh
 # Change Directory
 cd dev
 
@@ -100,10 +144,14 @@ terraform plan
 
 # Terraform Apply
 terraform apply -auto-approve
+```
 
+---
 
+## 10. Delete Kubernetes Resources
 
-# Delete Kubernetes  Resources
+```sh
 cd dev
 terraform apply -destroy -auto-approve
 Remove-Item -Recurse -Force .terraform*
+```
