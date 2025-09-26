@@ -1,0 +1,7 @@
+gcp_project     = "<GCP_PROJECTNAME>"
+gcp_region     = "us-central1"
+environment     = "dev"
+subnet_ip_range  = "10.128.0.0/20"
+pods_ip_range    = "10.10.0.0/21"
+services_ip_range = "10.20.0.0/21"
+master_ip_range  = "10.30.0.0/28"
